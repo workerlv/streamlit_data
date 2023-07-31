@@ -1,0 +1,7 @@
+supervision
+torchvision
+torch
+streamlit
+numpy
+pandas
+opencv-python==4.5.4.60
