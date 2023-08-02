@@ -2,78 +2,24 @@ import open3d as o3d
 import numpy as np
 
 ply_point_cloud = o3d.data.PLYPointCloud()
-pcd = o3d.io.read_point_cloud(ply_point_cloud.path)
+point_cloud = o3d.io.read_point_cloud(ply_point_cloud.path)
 
-# Compute the axis-aligned bounding box (AABB) of the point cloud
-aabb = pcd.get_axis_aligned_bounding_box()
+o3d.visualization.draw_geometries([point_cloud])
 
-# Get the vertices of the bounding box and convert to a NumPy array
-bbox_vertices = np.asarray(aabb.get_box_points())
+points = np.asarray(point_cloud.points)
 
-# Sort the vertices based on their y-coordinates (ascending order)
-bbox_vertices_sorted = bbox_vertices[bbox_vertices[:, 1].argsort()]
+distance_threshold = 0.02
+ransac_n = 3
 
-# Extract the coordinates of the top plane (four vertices with the highest y-coordinates)
-top_plane_vertices = bbox_vertices_sorted[-4:]
+plane_model, inliers = point_cloud.segment_plane(distance_threshold, ransac_n, 300, 0.999)
 
-# The top_plane_vertices variable now contains the coordinates of the top plane of the bounding box
-print("Coordinates of the top plane:")
-print(top_plane_vertices)
+inliers_mask = np.array(inliers)
 
-# Convert the top plane vertices to a new point cloud
-top_plane_pcd = o3d.geometry.PointCloud()
-top_plane_pcd.points = o3d.utility.Vector3dVector(top_plane_vertices)
+inlier_points = points[inliers_mask]
 
-lines = [[0, 2], [1, 3], [1, 2], [3, 0]]
+plane_cloud = o3d.geometry.PointCloud()
+plane_cloud.points = o3d.utility.Vector3dVector(inlier_points)
 
-line_set = o3d.geometry.LineSet()
-line_set.points = o3d.utility.Vector3dVector(top_plane_vertices)
-line_set.lines = o3d.utility.Vector2iVector(lines)
+outlier_cloud = o3d.geometry.PointCloud()
 
-# Visualize the point cloud, the top plane vertices, and the lines together
-o3d.visualization.draw_geometries([pcd, line_set])
-
-////////
-To create a Python project using Docker CLI, you can follow these steps:
-
-Install Docker:
-Make sure you have Docker installed on your system. You can download and install Docker Desktop for your respective operating system from the official Docker website.
-
-Create the Python Project:
-Open a terminal or command prompt, navigate to the directory where you want to create your Python project, and create a new directory for your project. Let's call it "my_python_project."
-
-Set Up Project Structure:
-Inside the "my_python_project" directory, create your Python code files and any necessary files like requirements.txt, Dockerfile, etc. For a simple example, let's assume you have a single Python script called "app.py" that you want to run.
-
-Create a Dockerfile:
-The Dockerfile is a text file that contains instructions on how to build your Docker image. Create a file named "Dockerfile" (without any file extension) in your project directory. Below is a sample Dockerfile for a basic Python project:
-
-Dockerfile
-Copy code
-# Use an official Python runtime as a base image
-FROM python:3.9
-
-# Set the working directory inside the container
-WORKDIR /app
-
-# Copy the current directory contents into the container at /app
-COPY . /app
-
-# Install project dependencies
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Define the command to run your Python script
-CMD ["python", "app.py"]
-Build the Docker Image:
-Open a terminal, navigate to your project directory (where the Dockerfile is located), and use the following command to build the Docker image:
-bash
-Copy code
-docker build -t my_python_project .
-Run the Docker Container:
-After successfully building the Docker image, you can run a container based on this image using the following command:
-bash
-Copy code
-docker run my_python_project
-Replace "my_python_project" with your desired image name.
-
-That's it! Your Python project is now running inside a Docker container. Remember that this is a simple example, and in real-world projects, you may need to adapt the Dockerfile and project structure to suit your specific requirements. Additionally, if your project has other dependencies or configurations, make sure to include them in the appropriate files (e.g., requirements.txt) and modify the Dockerfile accordingly.
+o3d.visualization.draw_geometries([plane_cloud])
