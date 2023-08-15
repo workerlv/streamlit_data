@@ -119,3 +119,50 @@ for i, point in enumerate(point_cloud):
 ---------------
 
 https://github.com/jmscslgroup/bagpy/blob/master/notebook/Bagpy%20tutorial.ipynb
+
+
+----------
+pyhthon project. input data raw bag file with lidar data like linear acceleration, orientation, timestampes etc. create functions which can take bag file and with math create point cloud point positions from this data
+
+import rosbag
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+def read_lidar_data(bag_file):
+    lidar_data = []
+    with rosbag.Bag(bag_file, 'r') as bag:
+        for topic, msg, t in bag.read_messages(topics=['/imu_topic']):
+            # Assuming the message contains linear acceleration and orientation data
+            linear_acceleration = msg.linear_acceleration
+            orientation = msg.orientation
+            timestamp = msg.header.stamp.to_sec()
+            lidar_data.append((timestamp, linear_acceleration, orientation))
+    return lidar_data
+
+def generate_point_cloud(lidar_data):
+    point_cloud = []
+    for timestamp, linear_acceleration, orientation in lidar_data:
+        # Apply your mathematical transformations here to convert data to point cloud
+        position = np.array([linear_acceleration.x, linear_acceleration.y, linear_acceleration.z])
+        point_cloud.append((timestamp, position))
+    return point_cloud
+
+def visualize_point_cloud(point_cloud):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    for timestamp, position in point_cloud:
+        ax.scatter(position[0], position[1], position[2], c='b', marker='.')
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+    plt.show()
+
+def main():
+    bag_file = 'path/to/your/bag/file.bag'
+    lidar_data = read_lidar_data(bag_file)
+    point_cloud = generate_point_cloud(lidar_data)
+    visualize_point_cloud(point_cloud)
+
+if __name__ == "__main__":
+    main()
