@@ -1,5 +1,8 @@
-https://github.com/niconielsen32/ComputerVision/tree/master/MonocularDepth
-https://www.youtube.com/watch?v=KEDhtD-qVkk
+https://pcl.readthedocs.io/projects/tutorials/en/latest/resampling.html
 
-https://github.com/nicknochnack/CodeTHat-MiDaS/blob/main/midascv.py
+https://pcl.readthedocs.io/projects/tutorials/en/latest/voxel_grid.html
+
+https://pcl.readthedocs.io/projects/tutorials/en/latest/octree_change.html#the-explanation
+
+https://pcl.readthedocs.io/projects/tutorials/en/latest/template_alignment.html
 
