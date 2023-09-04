@@ -6,3 +6,56 @@ https://pcl.readthedocs.io/projects/tutorials/en/latest/octree_change.html#the-e
 
 https://pcl.readthedocs.io/projects/tutorials/en/latest/template_alignment.html
 
+import rosbag
+import tf
+import numpy as np
+
+def read_bag_file(bag_file_path):
+    bag = rosbag.Bag(bag_file_path, 'r')
+    points = []
+
+    for topic, msg, t in bag.read_messages(topics=['/imu/data']):
+        # Extract quaternion orientation
+        quaternion = (msg.orientation.x,
+                      msg.orientation.y,
+                      msg.orientation.z,
+                      msg.orientation.w)
+
+        # Convert to Euler angles
+        euler = tf.transformations.euler_from_quaternion(quaternion)
+
+        # Extract linear acceleration
+        linear_acc = (msg.linear_acceleration.x,
+                      msg.linear_acceleration.y,
+                      msg.linear_acceleration.z)
+
+        # Compute the point's coordinates in some way from the above information
+        # For the sake of this example, let's just use the Euler angles as the x, y, z coordinates
+        point = [euler[0], euler[1], euler[2]]
+        points.append(point)
+
+    bag.close()
+    return np.array(points)
+
+def write_to_ply(points, ply_file_path):
+    with open(ply_file_path, 'w') as f:
+        f.write("ply\n")
+        f.write("format ascii 1.0\n")
+        f.write("element vertex {}\n".format(len(points)))
+        f.write("property float x\n")
+        f.write("property float y\n")
+        f.write("property float z\n")
+        f.write("end_header\n")
+
+        for point in points:
+            f.write("{} {} {}\n".format(point[0], point[1], point[2]))
+
+if __name__ == '__main__':
+    bag_file_path = 'your_file.bag'
+    ply_file_path = 'output.ply'
+
+    points = read_bag_file(bag_file_path)
+    write_to_ply(points, ply_file_path)
+
+
+
